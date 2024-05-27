@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat Application</title>
+  </head>
+  <body>
+    <h2>Chat Room</h2>
+    <input type="text" id="roomInput" placeholder="Enter room name" /><br />
+    <input type="text" id="nameInput" placeholder="Enter your name" /><br />
+    <input type="text" id="messageInput" placeholder="Enter message" /><br />
+    <button onclick="joinRoom()">Join Room</button>
+    <button onclick="sendMessage()">Send Message</button>
+
+    <ul id="messages"></ul>
+
+    <script>
+      let socket
+
+      function joinRoom() {
+        const room = document.getElementById('roomInput').value
+        const name = document.getElementById('nameInput').value
+
+        socket = new WebSocket(`ws://localhost:8080/ws/${room}`)
+
+        socket.onmessage = function (event) {
+          const msg = JSON.parse(event.data)
+          const messages = document.getElementById('messages')
+          const message = document.createElement('li')
+          message.textContent = `${msg.sender}: ${msg.content}`
+          messages.appendChild(message)
+        }
+
+        socket.onopen = function () {
+          console.log('Connected to the WebSocket server.')
+        }
+
+        socket.onclose = function () {
+          console.log('Disconnected from the WebSocket server.')
+        }
+      }
+
+      function sendMessage() {
+        const name = document.getElementById('nameInput').value
+        const content = document.getElementById('messageInput').value
+
+        const msg = {
+          sender: name,
+          content: content,
+        }
+
+        socket.send(JSON.stringify(msg))
+      }
+    </script>
+  </body>
+</html>
